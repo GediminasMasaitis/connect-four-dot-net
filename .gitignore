@@ -15,3 +15,6 @@ packages
 *.Development.yaml
 *.Local.json
 *.Local.yaml
+
+config.json
+config.yaml

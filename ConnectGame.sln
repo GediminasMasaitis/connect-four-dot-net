@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31911.196
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConnectGame", "ConnectGame\ConnectGame.csproj", "{BC9BFF7C-338D-4FA6-B82F-4280A005172B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConnectGame.Runner", "ConnectGame.Runner\ConnectGame.Runner.csproj", "{EEF36138-CF39-4A5A-A8E9-36DD01552BCF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Git", "Git", "{B851DEB6-63AB-4785-BD21-23E514833483}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BC9BFF7C-338D-4FA6-B82F-4280A005172B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC9BFF7C-338D-4FA6-B82F-4280A005172B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC9BFF7C-338D-4FA6-B82F-4280A005172B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC9BFF7C-338D-4FA6-B82F-4280A005172B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEF36138-CF39-4A5A-A8E9-36DD01552BCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEF36138-CF39-4A5A-A8E9-36DD01552BCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEF36138-CF39-4A5A-A8E9-36DD01552BCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEF36138-CF39-4A5A-A8E9-36DD01552BCF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {035C6596-EAC6-4444-8A7C-5F94F340E961}
+	EndGlobalSection
+EndGlobal

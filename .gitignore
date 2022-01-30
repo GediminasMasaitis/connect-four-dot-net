@@ -1,0 +1,17 @@
+.vs
+.vscode
+.idea
+
+bin
+obj
+Debug
+Release
+
+*.user
+packages
+
+*.pubxml
+*.Development.json
+*.Development.yaml
+*.Local.json
+*.Local.yaml

@@ -20,15 +20,16 @@ namespace ConnectGame
             {
                 for (int row = 0; row < board.Height; row++)
                 {
-                    var coordinate = new Coordinate(column, row);
-                    var player = board[coordinate];
+                    //var coordinate = new Coordinate(column, row);
+                    var cell = column + row * board.Width;
+                    var player = board.Cells[cell];
                     if (player == 0)
                     {
                         anyEmpty = true;
                         continue;
                     }
 
-                    var groups = _cache[coordinate];
+                    var groups = _cache[cell];
                     foreach (var group in groups)
                     {
                         var count = 0;
@@ -36,7 +37,7 @@ namespace ConnectGame
                         //for (var i = 0; i < _winCondition - 1; i++)
                         foreach (var target in group)
                         {
-                            if (board[target] != player)
+                            if (board.Cells[target] != player)
                             {
                                 win = false;
                                 break;

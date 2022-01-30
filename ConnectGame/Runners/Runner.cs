@@ -57,22 +57,11 @@ namespace ConnectGame
             throw new Exception("Unable to get winner");
         }
 
-        //private int? GetWinner(Board board)
-        //{
-        //    for (int column = 0; column < board.Width; column++)
-        //    {
-        //        if (board.Fills[column] == board.Cells[column].Length)
-        //        {
-        //            continue;
-        //        }
-        //    }
-        //}
-
         private bool IsFilled(Board board)
         {
-            for (int column = 0; column < board.Width; column++)
+            foreach (var fill in board.Fills)
             {
-                if (board.Fills[column] != board.Cells[column].Length)
+                if (fill != board.Height)
                 {
                     return false;
                 }

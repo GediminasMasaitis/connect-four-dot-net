@@ -8,25 +8,22 @@ namespace ConnectGame
 {
     class Zobrist
     {
-        private static ulong[][][] Cells { get; set; }
-        private static ulong[] Turns { get; set; }
+        public static ulong[][] Cells { get; set; }
+        public static ulong[] Turns { get; set; }
 
         public static void Init(int width, int height)
         {
             const int playerCount = 3;
 
             var rng = new Random(0);
-            Cells = new ulong[width][][];
-            for (int column = 0; column < width; column++)
+            var cellCount = width * height;
+            Cells = new ulong[cellCount][];
+            for (int cell = 0; cell < cellCount; cell++)
             {
-                Cells[column] = new ulong[height][];
-                for (int row = 0; row < height; row++)
+                Cells[cell] = new ulong[playerCount];
+                for (int player = 0; player < playerCount; player++)
                 {
-                    Cells[column][row] = new ulong[playerCount];
-                    for (int player = 0; player < playerCount; player++)
-                    {
-                        Cells[column][row][player] = NextKey(rng);
-                    }
+                    Cells[cell][player] = NextKey(rng);
                 }
             }
 
@@ -48,17 +45,13 @@ namespace ConnectGame
         public static ulong CalculateKey(Board board)
         {
             var key = 0UL;
-            for (int column = 0; column < board.Width; column++)
+            for (int cell = 0; cell < board.CellCount; cell++)
             {
-                for (int row = 0; row < board.Height; row++)
-                {
-                    var player = board.Cells[column][row];
-                    key ^= Cells[column][row][player];
-                }
+                var player = board.Cells[cell];
+                key ^= Cells[cell][player];
             }
 
             key ^= Turns[board.Player];
-
             return key;
         }
     }

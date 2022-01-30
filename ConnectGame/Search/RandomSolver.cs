@@ -18,7 +18,7 @@ namespace ConnectGame
             while (true)
             {
                 var column = _rng.Next(0, board.Width);
-                if (board.Fills[column] == board.Cells[column].Length)
+                if (board.Fills[column] == board.Height)
                 {
                     continue;
                 }

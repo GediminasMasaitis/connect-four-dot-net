@@ -21,8 +21,9 @@ namespace ConnectGame
             {
                 for (var column = 0; column < board.Width; column++)
                 {
-                    var cell = board.Cells[column][row];
-                    switch (cell)
+                    var cell = column + row * board.Width;
+                    var player = board.Cells[cell];
+                    switch (player)
                     {
                         case 0:
                             builder.Append('.');

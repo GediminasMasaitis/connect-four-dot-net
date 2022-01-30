@@ -1,14 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ConnectGame
 {
+    class Masks
+    {
+        public const ulong All = 0x3FFFFFFFFFFUL;
+    }
+
     class Board
     {
         public int Width { get; }
         public int Height { get; }
+        public int CellCount { get; }
 
-        public int[][] Cells { get; private set; }
+        public int[] Cells { get; private set; }
+        public ulong[] Bitboards { get; private set; }
         public IList<int> History { get; private set; }
         public int[] Fills { get; private set; }
         public int Player { get; private set; }
@@ -18,11 +26,9 @@ namespace ConnectGame
         {
             Width = width;
             Height = height;
-            Cells = new int[width][];
-            for (var i = 0; i < width; i++)
-            {
-                Cells[i] = new int[height];
-            }
+
+            Cells = new int[width * height];
+            CellCount = Cells.Length;
 
             Fills = new int[width];
             History = new List<int>(width * height);
@@ -30,18 +36,14 @@ namespace ConnectGame
             Key = Zobrist.CalculateKey(this);
         }
 
-        public int this[Coordinate coordinate]
-        {
-            get => Cells[coordinate.Column][coordinate.Row];
-            set => Cells[coordinate.Column][coordinate.Row] = value;
-        }
-
         public void MakeMove(int column)
         {
             History.Add(column);
 
-            var player = Player;
+            var originalPlayer = Player;
             SwapPlayers();
+            Key ^= Zobrist.Turns[originalPlayer];
+            Key ^= Zobrist.Turns[Player];
 
             if (column < 0)
             {
@@ -49,9 +51,12 @@ namespace ConnectGame
             }
 
             var row = Fills[column];
+            var cell = column + row * Width;
             Fills[column]++;
-            Cells[column][row] = player;
-            Key = Zobrist.CalculateKey(this);
+            Cells[cell] = originalPlayer;
+
+            Key ^= Zobrist.Cells[cell][0];
+            Key ^= Zobrist.Cells[cell][originalPlayer];
         }
 
         public void UnmakeMove()
@@ -59,8 +64,11 @@ namespace ConnectGame
             var column = History[^1];
             History.RemoveAt(History.Count - 1);
 
+            var originalPlayer = Player;
             SwapPlayers();
-            var player = Player;
+
+            Key ^= Zobrist.Turns[originalPlayer];
+            Key ^= Zobrist.Turns[Player];
 
             if (column < 0)
             {
@@ -69,8 +77,11 @@ namespace ConnectGame
 
             Fills[column]--;
             var row = Fills[column];
-            Cells[column][row] = 0;
-            Key = Zobrist.CalculateKey(this);
+            var cell = column + row * Width;
+            Cells[cell] = 0;
+
+            Key ^= Zobrist.Cells[cell][0];
+            Key ^= Zobrist.Cells[cell][Player];
         }
 
         public bool IsValidMove(int column)
@@ -83,22 +94,10 @@ namespace ConnectGame
             Player = Player == 1 ? 2 : 1;
         }
 
-        //private void AssertFillsCorrect()
-        //{
-        //    for (int column = 0; column < Width; column++)
-        //    {
-                
-        //    }
-        //}
-
         public Board Clone()
         {
             var board = new Board(Width, Height);
-            for (int column = 0; column < Width; column++)
-            {
-                board.Cells[column] = Cells[column].ToArray();
-            }
-
+            board.Cells = Cells.ToArray();
             board.History = History.ToList();
             board.Fills = Fills.ToArray();
             board.Player = Player;

@@ -37,5 +37,10 @@
         {
             return (Column, Row);
         }
+
+        public int ToCell(int width)
+        {
+            return Column + Row * width;
+        }
     }
 }

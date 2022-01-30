@@ -4,12 +4,13 @@ namespace ConnectGame
 {
     class WinCache
     {
-        private readonly Coordinate[][][][] _cache;
+        private readonly int[][][] _cache;
 
         public WinCache()
         {
             const int width = 7;
             const int height = 6;
+            const int cellCount = width * height;
 
             var offsets = new Coordinate[]
             {
@@ -19,19 +20,19 @@ namespace ConnectGame
                 new Coordinate(1, -1),
             };
 
-            _cache = new Coordinate[width][][][];
+            _cache = new int[cellCount][][];
             for (int column = 0; column < width; column++)
             {
-                _cache[column] = new Coordinate[height][][];
                 for (int row = 0; row < height; row++)
                 {
+                    var cell = column + row * width;
                     var coordinate = new Coordinate(column, row);
-                    var offsetList = new List<Coordinate[]>();
+                    var offsetList = new List<int[]>();
                     for (var offsetIndex = 0; offsetIndex < offsets.Length; offsetIndex++)
                     {
                         var target = coordinate;
                         var offset = offsets[offsetIndex];
-                        var neighbors = new List<Coordinate>();
+                        var neighbors = new List<int>();
                         for (int i = 0; i < 3; i++)
                         {
                             target += offset;
@@ -41,7 +42,8 @@ namespace ConnectGame
                                 break;
                             }
 
-                            neighbors.Add(target);
+                            var targetCell = target.ToCell(width);
+                            neighbors.Add(targetCell);
                         }
 
                         if (neighbors.Count == 3)
@@ -54,12 +56,12 @@ namespace ConnectGame
                         //    offsetList.Add(neighbors.ToArray());
                         //}
                     }
-                    _cache[column][row] = offsetList.ToArray();
+                    _cache[cell] = offsetList.ToArray();
                 }
             }
         }
 
-        public Coordinate[][] this[Coordinate coordinate] => _cache[coordinate.Column][coordinate.Row];
+        public int[][] this[int cell] => _cache[cell];
 
         private bool IsInMap(int width, int height, Coordinate coordinate)
         {

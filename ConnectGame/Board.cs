@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 
 namespace ConnectGame
 {
@@ -35,52 +36,59 @@ namespace ConnectGame
             Key = Zobrist.CalculateKey(this);
         }
 
-        public void MakeMove(int column)
+        public void MakeColumn(int column)
         {
-            History.Add(column);
+            var row = Fills[column];
+            var cell = column + row * Width;
+            MakeMove(cell);
+        }
+        public void MakeMove(int cell)
+        {
+            History.Add(cell);
 
             var originalPlayer = Player;
             SwapPlayers();
             Key ^= Zobrist.Player;
 
-            if (column < 0)
+            if (cell < 0)
             {
                 return;
             }
 
-            var row = Fills[column];
-            var cell = column + row * Width;
+            var column = cell % Width;
             Fills[column]++;
             Cells[cell] = originalPlayer;
-
             Key ^= Zobrist.Cells[cell][originalPlayer];
         }
 
         public void UnmakeMove()
         {
-            var column = History[^1];
+            var cell = History[^1];
             History.RemoveAt(History.Count - 1);
 
             var originalPlayer = Player;
             SwapPlayers();
             Key ^= Zobrist.Player;
 
-            if (column < 0)
+            if (cell < 0)
             {
                 return;
             }
 
+            var column = cell % Width;
             Fills[column]--;
-            var row = Fills[column];
-            var cell = column + row * Width;
             Cells[cell] = 0;
-
             Key ^= Zobrist.Cells[cell][Player];
         }
 
-        public bool IsValidMove(int column)
+        public bool IsValidColumn(int column)
         {
             return Fills[column] < Height;
+        }
+
+        public bool IsValidMove(int move)
+        {
+            return Cells[move] == 0;
         }
 
         private void SwapPlayers()

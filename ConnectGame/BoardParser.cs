@@ -47,7 +47,8 @@ namespace ConnectGame
             var moveStrs = boardStr.Split("_");
             foreach (var moveStr in moveStrs)
             {
-                var move = int.Parse(moveStr);
+                var column = int.Parse(moveStr);
+                var move = column + board.Fills[column] * board.Width;
                 board.MakeMove(move);
             }
 

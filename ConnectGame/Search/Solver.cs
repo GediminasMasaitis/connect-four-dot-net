@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace ConnectGame.Search
 
         private readonly int _threads;
         private readonly IEvaluation _eval;
-        private readonly TranspositionTable _table;
+        private readonly SearchState _state;
         private readonly MoveOrder _order;
         private readonly SearchStopper _stopper;
         private readonly SearchStatistics _stats;
@@ -25,7 +26,7 @@ namespace ConnectGame.Search
             EnableLogs = true;
             _threads = threads;
             _eval = evaluation;
-            _table = new TranspositionTable(1024 * 1024 * 8);
+            _state = new SearchState();
             _order = new MoveOrder();
             _stopper = new SearchStopper();
             _stats = new SearchStatistics();
@@ -45,13 +46,15 @@ namespace ConnectGame.Search
         public int Solve(Board board, SearchParameters searchParameters, CancellationToken cancellationToken)
         {
             _stopper.NewSearch(searchParameters, board, cancellationToken);
+            _state.NewSearch();
             _stats.Reset();
             var maxDepth = searchParameters.MaxDepth ?? 127;
             if (_threads <= 1)
             {
                 IterativeDeepen(board, maxDepth);
-                var bestmove = _table.PrincipalVariation[0].Move;
-                return bestmove;
+                var bestmove = _state.Table.PrincipalVariation[0].Move;
+                var bestColumn = bestmove % board.Width;
+                return bestColumn;
             }
 
             return SolveMultiThreaded(board, maxDepth);
@@ -71,7 +74,7 @@ namespace ConnectGame.Search
             options.MaxDegreeOfParallelism = _threads;
             Parallel.ForEach(moves, options, move =>
             {
-                var isValidMove = board.IsValidMove(move);
+                var isValidMove = board.IsValidColumn(move);
                 if (!isValidMove)
                 {
                     return;
@@ -109,7 +112,7 @@ namespace ConnectGame.Search
                     break;
                 }
 
-                _table.SavePrincipalVariation(board);
+                _state.Table.SavePrincipalVariation(board);
                 var elapsed = (int)_stopper.GetSearchedTime();
                 if (elapsed == 0)
                 {
@@ -120,13 +123,13 @@ namespace ConnectGame.Search
 
                 if (EnableLogs)
                 {
-                    var clone = board.Clone();
-                    var principalVariation = _table.PrincipalVariation;
+                    var principalVariation = _state.Table.PrincipalVariation;
                     var pvBuilder = new StringBuilder();
                     for (var i = 0; i < principalVariation.Count; i++)
                     {
                         var entry = principalVariation[i];
-                        pvBuilder.Append(entry.Move);
+                        var column = entry.Move % board.Width;
+                        pvBuilder.Append(column);
                         if (i < principalVariation.Count - 1)
                         {
                             pvBuilder.Append(' ');
@@ -176,7 +179,7 @@ namespace ConnectGame.Search
                 return eval;
             }
 
-            var entryExists = _table.TryGet(board.Key, out var entry);
+            var entryExists = _state.Table.TryGet(board.Key, out var entry);
             var pvMove = entryExists ? entry.Move : -1;
             if (entryExists)
             {
@@ -210,22 +213,33 @@ namespace ConnectGame.Search
 
             var player = board.Player;
             var movesEvaluated = 0;
-            var bestColumn = 0;
+            var bestMove = 0;
             var bestScore = -Inf;
             var raisedAlpha = false;
             var betaCutoff = false;
-            var moves = new int[] { 3, 2, 4, 1, 5, 0, 6 };
+            //var columns = new int[] { 3, 2, 4, 1, 5, 0, 6 };
+            var maybeColumns = new int[] { 3, 2, 4, 1, 5, 0, 6 };
+            var columns = maybeColumns.Where(board.IsValidColumn).ToArray();
+            var moves = new int[columns.Length];
+            for (var i = 0; i < columns.Length; i++)
+            {
+                var column = columns[i];
+                var row = board.Fills[column];
+                var move = column + row * board.Width;
+                moves[i] = move;
+            }
 
-            _order.OrderMoves(moves, pvMove);
-
+            var scores = _order.GetMoveScores(board, _state, moves, pvMove);
             for (var moveIndex = 0; moveIndex < moves.Length; moveIndex++)
             {
+                _order.OrderNextMove(moveIndex, moves, scores);
                 var move = moves[moveIndex];
-                var isValidMove = board.IsValidMove(move);
-                if (!isValidMove)
-                {
-                    continue;
-                }
+                //var column = columns[]
+                //var isValidMove = board.IsValidMove(move);
+                //if (!isValidMove)
+                //{
+                //    continue;
+                //}
 
                 board.MakeMove(move);
                 int score;
@@ -246,10 +260,12 @@ namespace ConnectGame.Search
                 movesEvaluated++;
                 if (score > bestScore)
                 {
-                    bestColumn = move;
+                    bestMove = move;
                     bestScore = score;
                     if (score > alpha)
                     {
+                        _state.History[board.Player][bestMove] += depth * depth;
+
                         raisedAlpha = true;
                         alpha = score;
                         if (score >= beta)
@@ -263,17 +279,17 @@ namespace ConnectGame.Search
 
             if (betaCutoff)
             {
-                _table.Set(board.Key, bestColumn, bestScore, depth, TranspositionTableFlag.Beta);
+                StoreEntry(board.Key, bestMove, bestScore, depth, TranspositionTableFlag.Beta);
                 return beta;
             }
 
             if (raisedAlpha)
             {
-                _table.Set(board.Key, bestColumn, bestScore, depth, TranspositionTableFlag.Exact);
+                StoreEntry(board.Key, bestMove, bestScore, depth, TranspositionTableFlag.Exact);
             }
             else
             {
-                _table.Set(board.Key, bestColumn, bestScore, depth, TranspositionTableFlag.Alpha);
+                StoreEntry(board.Key, bestMove, bestScore, depth, TranspositionTableFlag.Alpha);
             }
 
             return alpha;
@@ -286,12 +302,12 @@ namespace ConnectGame.Search
                 return;
             }
 
-            _table.Set(key, column, score, depth, flag);
+            _state.Table.Set(key, column, score, depth, flag);
         }
 
         public void ResetState()
         {
-            _table.Clear();
+            _state.Clear();
             _eval.ResetState();
         }
     }

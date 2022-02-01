@@ -38,7 +38,7 @@ namespace ConnectGame.Runner
             //const string consoleTemplate = "[{Timestamp:HH:mm:ss}] {Message:lj}{NewLine}{Exception}";
             loggerConfiguration.WriteTo.Console(outputTemplate: consoleTemplate);
             loggerConfiguration.MinimumLevel.Information();
-//            loggerConfiguration.MinimumLevel.Debug();
+            //loggerConfiguration.MinimumLevel.Debug();
             Log.Logger = loggerConfiguration.CreateLogger();
         }
 

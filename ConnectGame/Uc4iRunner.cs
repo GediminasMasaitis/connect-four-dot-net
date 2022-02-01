@@ -84,20 +84,20 @@ namespace ConnectGame
                     return true;
                 }
 
-                board.MakeMove(move);
+                board.MakeColumn(move);
                 return true;
             }
 
             if (line == "d")
             {
                 board = new Board(7, 6);
-                board.MakeMove(0);
-                board.MakeMove(2);
-                board.MakeMove(0);
-                board.MakeMove(4);
-                board.MakeMove(0);
-                board.MakeMove(6);
-                board.MakeMove(0);
+                board.MakeColumn(0);
+                board.MakeColumn(2);
+                board.MakeColumn(0);
+                board.MakeColumn(4);
+                board.MakeColumn(0);
+                board.MakeColumn(6);
+                board.MakeColumn(0);
                 return true;
             }
 

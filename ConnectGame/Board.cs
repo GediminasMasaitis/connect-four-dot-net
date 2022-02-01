@@ -15,11 +15,11 @@ namespace ConnectGame
         public int Height { get; }
         public int CellCount { get; }
 
-        public int[] Cells { get; private set; }
-        public ulong[] Bitboards { get; private set; }
+        public byte[] Cells { get; private set; }
+        //public ulong[] Bitboards { get; private set; }
         public IList<int> History { get; private set; }
         public int[] Fills { get; private set; }
-        public int Player { get; private set; }
+        public byte Player { get; private set; }
         public ulong Key { get; private set; }
 
         public Board(int width, int height)
@@ -27,7 +27,7 @@ namespace ConnectGame
             Width = width;
             Height = height;
 
-            Cells = new int[width * height];
+            Cells = new byte[width * height];
             CellCount = Cells.Length;
 
             Fills = new int[width];
@@ -42,8 +42,7 @@ namespace ConnectGame
 
             var originalPlayer = Player;
             SwapPlayers();
-            Key ^= Zobrist.Turns[originalPlayer];
-            Key ^= Zobrist.Turns[Player];
+            Key ^= Zobrist.Player;
 
             if (column < 0)
             {
@@ -55,7 +54,6 @@ namespace ConnectGame
             Fills[column]++;
             Cells[cell] = originalPlayer;
 
-            Key ^= Zobrist.Cells[cell][0];
             Key ^= Zobrist.Cells[cell][originalPlayer];
         }
 
@@ -66,9 +64,7 @@ namespace ConnectGame
 
             var originalPlayer = Player;
             SwapPlayers();
-
-            Key ^= Zobrist.Turns[originalPlayer];
-            Key ^= Zobrist.Turns[Player];
+            Key ^= Zobrist.Player;
 
             if (column < 0)
             {
@@ -80,7 +76,6 @@ namespace ConnectGame
             var cell = column + row * Width;
             Cells[cell] = 0;
 
-            Key ^= Zobrist.Cells[cell][0];
             Key ^= Zobrist.Cells[cell][Player];
         }
 
@@ -91,7 +86,7 @@ namespace ConnectGame
 
         private void SwapPlayers()
         {
-            Player = Player == 1 ? 2 : 1;
+            Player = Player == 1 ? (byte)2 : (byte)1;
         }
 
         public Board Clone()

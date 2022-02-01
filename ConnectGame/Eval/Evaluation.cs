@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 namespace ConnectGame.Eval
 {
@@ -66,12 +67,9 @@ namespace ConnectGame.Eval
             return score;
         }
 
-        private int EvaluateCoordinate(Board board, int player, int cell, out bool win)
+        private int EvaluateCoordinate(Board board, byte player, int cell, out bool win)
         {
-            if (player == 0)
-            {
-                throw new Exception();
-            }
+            Debug.Assert(player != 0);
 
             var score = 0;
             var neighborGroups = _neighbors[cell];
@@ -90,7 +88,7 @@ namespace ConnectGame.Eval
             return score;
         }
 
-        private int EvaluateGroup(Board board, int player, int[][] group, out bool win)
+        private int EvaluateGroup(Board board, byte player, int[][] group, out bool win)
         {
             win = false;
             var currentCount = 0;

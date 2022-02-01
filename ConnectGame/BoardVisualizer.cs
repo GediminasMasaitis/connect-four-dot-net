@@ -42,6 +42,7 @@ namespace ConnectGame
                 builder.AppendLine();
             }
 
+            builder.AppendLine($"Key: {board.Key:X16}");
             builder.AppendLine($"Player to move: {board.Player}");
             if (evaluate)
             {

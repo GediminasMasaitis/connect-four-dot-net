@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ConnectGame.Runner
 {
-    record TournamentEntry(int? Winner, TimeSpan Elapsed, TimeSpan?[] RemainingTimes);
+    record TournamentEntry(int? Winner, TimeSpan Elapsed, TimeSpan?[] RemainingTimes, bool InvalidMove = false);
 
     public class SearchParameters
     {
@@ -164,9 +165,10 @@ namespace ConnectGame.Runner
             var remainingE2reg = result.RemainingTimes[1]?.ToString("ss\\.fff") ?? "-";
             var remainingE1rev = reversedResult.RemainingTimes[0]?.ToString("ss\\.fff") ?? "-";
             var remainingE2rev = reversedResult.RemainingTimes[1]?.ToString("ss\\.fff") ?? "-";
-
+            var invalid1 = result.InvalidMove ? "INVALID1" : string.Empty;
+            var invalid2 = result.InvalidMove ? "INVALID2" : string.Empty;
             _logger.LogInformation(
-                "[{MatchId:0000}] {Elo} +- {EloMargin:0.00}, LOS: {Los}, E1: {Engine1Wins} ({Engine1Percent:00.0}%), E2: {Engine2Wins} ({Engine2Percent:00.0}%), Draw: {Draws} ({DrawPercent:00.0}%), Results: {ResultRegular} {ResultReversed}, elapsed: {ElapsedRegular:g} {ElapsedReversed:g}, remaining: {RemainingTimeE1Regular} {RemainingTimeE2Regular} {RemainingTimeE1Reversed} {RemainingTimeE2Reversed}",
+                "[{MatchId:0000}] {Elo} +- {EloMargin:0.00}, LOS: {Los}, E1: {Engine1Wins} ({Engine1Percent:00.0}%), E2: {Engine2Wins} ({Engine2Percent:00.0}%), Draw: {Draws} ({DrawPercent:00.0}%), Results: {ResultRegular} {ResultReversed}, elapsed: {ElapsedRegular:g} {ElapsedReversed:g}, remaining: {RemainingTimeE1Regular} {RemainingTimeE2Regular} {RemainingTimeE1Reversed} {RemainingTimeE2Reversed} {Invalid1}{Invalid2}",
                 matchId,
                 eloStr,
                 eloMargin,
@@ -184,7 +186,9 @@ namespace ConnectGame.Runner
                 remainingE1reg,
                 remainingE2reg,
                 remainingE1rev,
-                remainingE2rev
+                remainingE2rev,
+                invalid1,
+                invalid2
             );
         }
 
@@ -241,6 +245,7 @@ namespace ConnectGame.Runner
             timeControl.Reset();
             foreach (var engine in engines)
             {
+                //engine.ClearHistory();
                 await engine.SendUc4iNewGame();
                 await engine.SendIsReady();
             }
@@ -285,6 +290,18 @@ namespace ConnectGame.Runner
                 {
                     _logger.LogError("Engine failed to provide column");
                     Environment.Exit(1);
+                }
+
+                if (!board.IsValidMove(column.Value))
+                {
+                    stopwatch.Stop();
+                    var times = new TimeSpan?[2];
+                    times[0] = timeControl.Times[1];
+                    times[1] = timeControl.Times[2];
+                    var opponent = board.Player == 1 ? 2 : 1;
+                    var result = new TournamentEntry(opponent, stopwatch.Elapsed, times, true);
+                    await File.WriteAllLinesAsync("C:/Temp/c4.txt", engine.History);
+                    return result;
                 }
 
                 board.MakeMove(column.Value);

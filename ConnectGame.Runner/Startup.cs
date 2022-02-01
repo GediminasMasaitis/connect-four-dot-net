@@ -35,9 +35,10 @@ namespace ConnectGame.Runner
             var loggerConfiguration = new LoggerConfiguration();
             //const string consoleTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}";
             const string consoleTemplate = "[{Timestamp:HH:mm:ss}] {EngineId} {Message:lj}{NewLine}{Exception}";
+            //const string consoleTemplate = "[{Timestamp:HH:mm:ss}] {Message:lj}{NewLine}{Exception}";
             loggerConfiguration.WriteTo.Console(outputTemplate: consoleTemplate);
             loggerConfiguration.MinimumLevel.Information();
-            //loggerConfiguration.MinimumLevel.Debug();
+//            loggerConfiguration.MinimumLevel.Debug();
             Log.Logger = loggerConfiguration.CreateLogger();
         }
 

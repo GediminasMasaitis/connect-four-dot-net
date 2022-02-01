@@ -7,6 +7,8 @@ namespace ConnectGame.Search
     {
         private readonly ulong _size;
         private readonly TranspositionTableEntry[] _entries;
+        
+        public IList<TranspositionTableEntry> PrincipalVariation { get; set; }
 
         public TranspositionTable(ulong size)
         {
@@ -55,8 +57,7 @@ namespace ConnectGame.Search
 
             return true;
         }
-
-        public IList<TranspositionTableEntry> GetPrincipalVariation(Board board)
+        private IList<TranspositionTableEntry> GetPrincipalVariation(Board board)
         {
             var entries = new List<TranspositionTableEntry>();
             for (var i = 0; i < 1000; i++)
@@ -76,6 +77,12 @@ namespace ConnectGame.Search
                 board.MakeMove(entry.Move);
             }
             return entries;
+        }
+
+        public void SavePrincipalVariation(Board board)
+        {
+            var clone = board.Clone();
+            PrincipalVariation = GetPrincipalVariation(clone);
         }
 
         public void Clear()

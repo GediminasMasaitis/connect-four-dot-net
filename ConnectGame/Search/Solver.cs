@@ -49,13 +49,9 @@ namespace ConnectGame.Search
             var maxDepth = searchParameters.MaxDepth ?? 127;
             if (_threads <= 1)
             {
-                //var (column, score) = Search(board, _depth, 0, -Inf, Inf);
-                //var s = new Stopwatch();
-                //s.Start();
-                var (column, score) = IterativeDeepen(board, maxDepth);
-                //s.Stop();
-                //Console.WriteLine(s.Elapsed.TotalMilliseconds);
-                return column;
+                IterativeDeepen(board, maxDepth);
+                var bestmove = _table.PrincipalVariation[0].Move;
+                return bestmove;
             }
 
             return SolveMultiThreaded(board, maxDepth);
@@ -83,8 +79,7 @@ namespace ConnectGame.Search
 
                 var boardClone = board.Clone();
                 boardClone.MakeMove(move);
-                var (_, inverseScore) = Search(boardClone, depth - 1, 1, -Inf, Inf, true);
-                var score = -inverseScore;
+                var score = -Search(boardClone, depth - 1, 1, -Inf, Inf, true);
                 scores[move] = score;
             });
 
@@ -103,20 +98,18 @@ namespace ConnectGame.Search
             return bestMove;
         }
 
-        private (int, int) IterativeDeepen(Board board, int maxDepth)
+        private void IterativeDeepen(Board board, int maxDepth)
         {
-            int savedMove = 0;
-            int score = -Inf;
             for (int depth = 2; depth <= maxDepth; depth++)
             {
-                int move;
-                (move, score) = Search(board, depth, 0, -Inf, Inf, true);
+                var score = Search(board, depth, 0, -Inf, Inf, true);
 
                 if (_stopper.IsStopped())
                 {
                     break;
                 }
 
+                _table.SavePrincipalVariation(board);
                 var elapsed = (int)_stopper.GetSearchedTime();
                 if (elapsed == 0)
                 {
@@ -128,7 +121,7 @@ namespace ConnectGame.Search
                 if (EnableLogs)
                 {
                     var clone = board.Clone();
-                    var principalVariation = _table.GetPrincipalVariation(clone);
+                    var principalVariation = _table.PrincipalVariation;
                     var pvBuilder = new StringBuilder();
                     for (var i = 0; i < principalVariation.Count; i++)
                     {
@@ -144,24 +137,20 @@ namespace ConnectGame.Search
                     Console.WriteLine($"info depth {depth} nodes {_stats.NodesSearched} time {elapsed} score pts {score} nps {nps} pv {pvStr}");
                 }
 
-                savedMove = move;
-
                 var isStopped = _stopper.ShouldStopOnDepthIncrease(depth);
                 if (isStopped)
                 {
                     break;
                 }
             }
-
-            return (savedMove, score);
         }
 
-        private (int, int) Search(Board board, int depth, int ply, int alpha, int beta, bool isPrincipalVariation)
+        private int Search(Board board, int depth, int ply, int alpha, int beta, bool isPrincipalVariation)
         {
             // STOP CHECK
             if (depth > 2 && _stopper.ShouldStop())
             {
-                return (0, alpha);
+                return alpha;
             }
 
             var eval = Eval(board, out var winner);
@@ -171,20 +160,20 @@ namespace ConnectGame.Search
             {
                 if (winner == 0)
                 {
-                    return (default, 0);
+                    return 0;
                 }
 
                 if (winner == board.Player)
                 {
-                    return (default, Win - ply);
+                    return Win - ply;
                 }
 
-                return (default, ply - Win);
+                return ply - Win;
             }
 
             if (depth == 0)
             {
-                return (default, eval);
+                return eval;
             }
 
             var entryExists = _table.TryGet(board.Key, out var entry);
@@ -196,17 +185,17 @@ namespace ConnectGame.Search
                     switch (entry.Flag)
                     {
                         case TranspositionTableFlag.Exact:
-                            return (entry.Move, entry.Score);
+                            return entry.Score;
                         case TranspositionTableFlag.Alpha:
                             if (entry.Score <= alpha)
                             {
-                                return (entry.Move, alpha);
+                                return alpha;
                             }
                             break;
                         case TranspositionTableFlag.Beta:
                             if (entry.Score >= beta)
                             {
-                                return (entry.Move, beta);
+                                return beta;
                             }
                             break;
                     }
@@ -242,18 +231,15 @@ namespace ConnectGame.Search
                 int score;
                 if (movesEvaluated > 0)
                 {
-                    var (_, inverseScore) = Search(board, depth - 1, ply + 1, -alpha - 1, -alpha, false);
-                    score = -inverseScore;
+                    score = -Search(board, depth - 1, ply + 1, -alpha - 1, -alpha, false);
                     if (score > alpha)
                     {
-                        var (_, inverseReScore) = Search(board, depth - 1, ply + 1, -beta, -alpha, isPrincipalVariation);
-                        score = -inverseReScore;
+                        score = -Search(board, depth - 1, ply + 1, -beta, -alpha, isPrincipalVariation);
                     }
                 }
                 else
                 {
-                    var (_, inverseScore) = Search(board, depth - 1, ply + 1, -beta, -alpha, isPrincipalVariation);
-                    score = -inverseScore;
+                    score = -Search(board, depth - 1, ply + 1, -beta, -alpha, isPrincipalVariation);
                 }
 
                 board.UnmakeMove();
@@ -278,7 +264,7 @@ namespace ConnectGame.Search
             if (betaCutoff)
             {
                 _table.Set(board.Key, bestColumn, bestScore, depth, TranspositionTableFlag.Beta);
-                return (bestColumn, beta);
+                return beta;
             }
 
             if (raisedAlpha)
@@ -290,7 +276,7 @@ namespace ConnectGame.Search
                 _table.Set(board.Key, bestColumn, bestScore, depth, TranspositionTableFlag.Alpha);
             }
 
-            return (bestColumn, alpha);
+            return alpha;
         }
 
         private void StoreEntry(ulong key, int column, int score, int depth, TranspositionTableFlag flag)

@@ -12,6 +12,8 @@ namespace ConnectGame.Runner.Engines
 {
     class Engine : IEngine
     {
+        public IList<string> History => _process.History;
+
         public EngineInfo Info { get; }
         public Task ReadLoop { get; private set; }
 
@@ -207,6 +209,11 @@ namespace ConnectGame.Runner.Engines
                     _logger.LogWarning("Unknown id subcommand {Subcommand}", words[1]);
                     break;
             }
+        }
+
+        public void ClearHistory()
+        {
+            _process.ClearHistory();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using ConnectGame.Runner.Game;
@@ -7,6 +8,8 @@ namespace ConnectGame.Runner
 {
     internal interface IEngine : IDisposable
     {
+        IList<string> History { get; }
+
         EngineInfo Info { get; }
         Task ReadLoop { get; }
 
@@ -17,5 +20,6 @@ namespace ConnectGame.Runner
         Task SendPosition(Board board);
         Task SendIsReady();
         Task<int?> SendGo(IMatchTimeControl timeControl);
+        void ClearHistory();
     }
 }

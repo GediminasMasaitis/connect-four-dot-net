@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ConnectGame
+namespace ConnectGame.Search
 {
     class MoveOrder
     {
@@ -17,7 +17,5 @@ namespace ConnectGame
                 }
             }
         }
-
-        //private int GetMoveScore()
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace ConnectGame
+namespace ConnectGame.Eval
 {
     class NeighborCache
     {

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading;
-using ConnectGame.Search;
 
-namespace ConnectGame
+namespace ConnectGame.Search
 {
     class RandomSolver : ISolver
     {

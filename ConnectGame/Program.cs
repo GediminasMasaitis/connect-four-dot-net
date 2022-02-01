@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using ConnectGame.Eval;
+using ConnectGame.Runners;
 using ConnectGame.Search;
 
 namespace ConnectGame

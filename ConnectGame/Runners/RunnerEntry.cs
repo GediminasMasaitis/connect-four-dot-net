@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ConnectGame
+namespace ConnectGame.Runners
 {
     record RunnerEntry(int? Winner, TimeSpan Elapsed);
 }

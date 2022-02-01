@@ -1,20 +1,18 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using ConnectGame.Eval;
 using ConnectGame.Search;
 
-namespace ConnectGame
+namespace ConnectGame.Runners
 {
     class Runner
     {
-        private readonly WinDetector _win;
+        private readonly IEvaluation _eval;
 
-        public Runner(bool printTimes = false)
+        public Runner()
         {
-            _win = new WinDetector();
+            _eval = new Evaluation();
         }
 
         public RunnerResult Run(Board board, ISolver player1, ISolver player2, Action<RunnerEntry> onIteration = default)
@@ -43,13 +41,13 @@ namespace ConnectGame
                 var column = players[board.Player].Solve(board, parameters, CancellationToken.None);
                 iterationStopwatch.Stop();
                 board.MakeMove(column);
-                var winner = _win.GetWinner(board);
+                var eval = _eval.Evaluate(board, out var winner);
                 var entry = new RunnerEntry(winner, iterationStopwatch.Elapsed);
                 onIteration?.Invoke(entry);
-                if (winner.HasValue)
+                if (winner != -1)
                 {
                     matchStopwarch.Stop();
-                    var result = new RunnerResult(winner.Value, matchStopwarch.Elapsed);
+                    var result = new RunnerResult(winner, matchStopwarch.Elapsed);
                     return result;
                 }
             }

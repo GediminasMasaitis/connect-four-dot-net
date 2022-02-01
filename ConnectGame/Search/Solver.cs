@@ -12,7 +12,6 @@ namespace ConnectGame.Search
 
         private readonly int _threads;
         private readonly IEvaluation _eval;
-        private readonly WinDetector _win;
         private readonly TranspositionTable _table;
         private readonly MoveOrder _order;
         private readonly SearchStopper _stopper;
@@ -26,7 +25,6 @@ namespace ConnectGame.Search
             EnableLogs = true;
             _threads = threads;
             _eval = evaluation;
-            _win = new WinDetector();
             _table = new TranspositionTable(1024 * 1024 * 8);
             _order = new MoveOrder();
             _stopper = new SearchStopper();

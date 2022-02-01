@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace ConnectGame.Eval
 {
@@ -7,13 +6,11 @@ namespace ConnectGame.Eval
     {
         private readonly NeighborCache _neighbors;
         private readonly EvaluationCache _cache;
-        private readonly WinDetector _detector;
 
         public Evaluation()
         {
             _neighbors = new NeighborCache();
             _cache = new EvaluationCache(1024 * 1024 * 4);
-            //_detector = new WinDetector();
         }
 
         public int Evaluate(Board board, out int winner)

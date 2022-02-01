@@ -1,15 +1,19 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace ConnectGame.Eval
 {
     class EvaluationNew : IEvaluation
     {
         private readonly int[] _bonuses;
-        private readonly List<IList<Coordinate>> _groups;
+        private readonly (int[], bool)[] _groups;
         private readonly EvaluationCache _cache;
+        //private readonly Evaluation _eval2;
 
         public EvaluationNew()
         {
+            //_eval2 = new Evaluation();
             _cache = new EvaluationCache(1024 * 1024 * 4);
 
             _bonuses = new int[]
@@ -29,20 +33,31 @@ namespace ConnectGame.Eval
                 1000,
             };
 
-            var width = 7;
-            var height = 6;
+            const int width = Rules.Width;
+            const int height = Rules.Height;
 
-            _groups = new List<IList<Coordinate>>();
+            var groups = new List<(IList<int>, bool)>();
+
+            for (int column = 0; column < width; column++)
+            {
+                var line = new List<int>();
+                for (int row = 0; row < height; row++)
+                {
+                    var cell = column + row * width;
+                    line.Add(cell);
+                }
+                groups.Add((line, false));
+            }
 
             for (int row = 0; row < height; row++)
             {
-                var line = new List<Coordinate>();
+                var line = new List<int>();
                 for (int column = 0; column < width; column++)
                 {
-                    var coordinate = new Coordinate(column, row);
-                    line.Add(coordinate);
+                    var cell = column + row * width;
+                    line.Add(cell);
                 }
-                _groups.Add(line);
+                groups.Add((line, true));
             }
 
             var diagonalStarts = new List<Coordinate>();
@@ -73,7 +88,7 @@ namespace ConnectGame.Eval
                 foreach (var start in starts)
                 {
                     var coordinate = start;
-                    var line = new List<Coordinate>();
+                    var line = new List<int>();
                     while (true)
                     {
                         var isInMap = IsInMap(width, height, coordinate);
@@ -82,16 +97,23 @@ namespace ConnectGame.Eval
                             break;
                         }
 
-                        line.Add(coordinate);
+                        var cell = coordinate.ToCell(width);
+                        line.Add(cell);
                         coordinate = coordinate + offset;
                     }
 
                     if (line.Count >= 4)
                     {
-                        _groups.Add(line);
+                        groups.Add((line, true));
                     }
                 }
             }
+
+            _groups = groups.Select(x =>
+            {
+                var (group, eval) = x;
+                return (group.ToArray(), eval);
+            }).ToArray();
         }
 
         private bool IsInMap(int width, int height, Coordinate coordinate)
@@ -121,6 +143,8 @@ namespace ConnectGame.Eval
 
         public int Evaluate(Board board, out int winner)
         {
+            //return EvaluateInner(board, out winner);
+
             if (_cache.TryGet(board.Key, out var entry))
             {
                 winner = entry.Winner;
@@ -128,6 +152,11 @@ namespace ConnectGame.Eval
             }
 
             var score = EvaluateInner(board, out winner);
+            //_eval2.Evaluate(board, out var winner2);
+            //if (winner != winner2)
+            //{
+            //    var a = 123;
+            //}
             _cache.Set(board.Key, score, winner);
             return score;
         }
@@ -139,46 +168,45 @@ namespace ConnectGame.Eval
 
             var scores = new int[3];
 
-            for (int column = 0; column < board.Width; column++)
-            {
-                if (board.Fills[column] == board.Height)
-                {
-                    continue;
-                }
+            //for (int column = 0; column < board.Width; column++)
+            //{
+            //    if (board.Fills[column] == board.Height)
+            //    {
+            //        continue;
+            //    }
 
-                if (board.Fills[column] == 0)
-                {
-                    continue;
-                }
+            //    if (board.Fills[column] == 0)
+            //    {
+            //        continue;
+            //    }
 
-                var topRow = board.Fills[column] - 1;
-                var currentCell = column + topRow * board.Width;
-                var currentPlayer = board.Cells[currentCell];
-                var count = 0;
-                for (var row = board.Fills[column] - 2; row >= 0; row--)
-                {
-                    var cell = column + row * board.Width;
-                    var player = board.Cells[cell];
-                    if (player != currentPlayer)
-                    {
-                        break;
-                    }
+            //    var topRow = board.Fills[column] - 1;
+            //    var currentCell = column + topRow * board.Width;
+            //    var currentPlayer = board.Cells[currentCell];
+            //    var count = 0;
+            //    for (var row = board.Fills[column] - 2; row >= 0; row--)
+            //    {
+            //        var cell = column + row * board.Width;
+            //        var player = board.Cells[cell];
+            //        if (player != currentPlayer)
+            //        {
+            //            break;
+            //        }
 
-                    count++;
-                }
+            //        count++;
+            //    }
 
-                var bonus = _bonuses[count];
-                scores[currentPlayer] += bonus;
-            }
+            //    var bonus = _bonuses[count];
+            //    scores[currentPlayer] += bonus;
+            //}
 
-            foreach (var group in _groups)
+            foreach (var (group, doEval) in _groups)
             {
                 var openEnd = false;
                 var currentPlayer = 0;
                 var count = 0;
-                foreach (var coordinate in group)
+                foreach (var cell in group)
                 {
-                    var cell = coordinate.ToCell(board.Width);
                     var player = board.Cells[cell];
                     if (player == 0)
                     {
@@ -188,6 +216,11 @@ namespace ConnectGame.Eval
                     if (player == currentPlayer)
                     {
                         count++;
+                        if (currentPlayer != 0 && count >= 3)
+                        {
+                            winner = currentPlayer;
+                            return 0;
+                        }
                     }
                     else
                     {
@@ -207,7 +240,7 @@ namespace ConnectGame.Eval
                     }
                 }
 
-                if (openEnd)
+                if (openEnd && doEval)
                 {
                     var bonus = _bonuses[count];
                     scores[currentPlayer] += bonus;

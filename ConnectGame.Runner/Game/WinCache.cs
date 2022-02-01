@@ -8,8 +8,8 @@ namespace ConnectGame.Runner.Game
 
         public WinCache()
         {
-            const int width = 7;
-            const int height = 6;
+            const int width = Rules.Width;
+            const int height = Rules.Height;
 
             var offsets = new Coordinate[]
             {

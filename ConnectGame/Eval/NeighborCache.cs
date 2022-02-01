@@ -8,9 +8,9 @@ namespace ConnectGame.Eval
 
         public NeighborCache()
         {
-            const int width = 7;
-            const int height = 6;
-            const int cellCount = 7 * 6;
+            const int width = Rules.Width;
+            const int height = Rules.Height;
+            const int cellCount = width * height;
 
             var offsetGroups = new Coordinate[][]
             {

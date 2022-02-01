@@ -43,7 +43,7 @@ namespace ConnectGame.Runners
         {
             var player1 = player1Factory.Invoke();
             var player2 = player2Factory.Invoke();
-            var board = new Board(7, 6);
+            var board = new Board(Rules.Width, Rules.Height);
             for (var j = 0; j < 4; j++)
             {
                 var column = rng.Next(0, board.Width);
@@ -51,23 +51,6 @@ namespace ConnectGame.Runners
             }
 
             RunMatchPair(results, board, player1, player2);
-        }
-
-        public void Run(ISolver player1, ISolver player2)
-        {
-            var results = new List<RunnerResult>();
-            var rng = new Random(0);
-            for (var i = 0; i < 1000; i++)
-            {
-                var board = new Board(7, 6);
-                for (var j = 0; j < 4; j++)
-                {
-                    var column = rng.Next(0, board.Width);
-                    board.MakeMove(column);
-                }
-
-                RunMatchPair(results, board, player1, player2);
-            }
         }
 
         private void RunMatchPair(IList<RunnerResult> results, Board board, ISolver player1, ISolver player2)

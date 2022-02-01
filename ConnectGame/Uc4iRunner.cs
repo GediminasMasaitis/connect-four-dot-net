@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using System.Threading;
 using ConnectGame.Eval;
 using ConnectGame.Search;
@@ -25,7 +26,7 @@ namespace ConnectGame
 
         public void Run()
         {
-            Board board = new Board(7, 6);
+            Board board = new Board(Rules.Width, Rules.Height);
             while (true)
             {
                 var line = Console.ReadLine();
@@ -90,7 +91,7 @@ namespace ConnectGame
 
             if (line == "d")
             {
-                board = new Board(7, 6);
+                board = new Board(Rules.Width, Rules.Height);
                 board.MakeColumn(0);
                 board.MakeColumn(2);
                 board.MakeColumn(0);

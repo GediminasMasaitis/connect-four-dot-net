@@ -21,7 +21,7 @@ namespace ConnectGame
 
             if (words.Length < 3)
             {
-                var startBoard = new Board(7, 6);
+                var startBoard = new Board(Rules.Width, Rules.Height);
                 return startBoard;
             }
 
@@ -43,7 +43,7 @@ namespace ConnectGame
 
         private Board ParseMoves(string boardStr)
         {
-            var board = new Board(7, 6);
+            var board = new Board(Rules.Width, Rules.Height);
             var moveStrs = boardStr.Split("_");
             foreach (var moveStr in moveStrs)
             {

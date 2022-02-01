@@ -9,7 +9,7 @@ namespace ConnectGame
     {
         static void Main(string[] args)
         {
-            Zobrist.Init(7,6);
+            Zobrist.Init(Rules.Width, Rules.Height);
             RunUc4i();
             //RunTest();
             //RunTournament();
@@ -23,7 +23,7 @@ namespace ConnectGame
 
         static void RunTest()
         {
-            var board = new Board(7, 6);
+            var board = new Board(Rules.Width, Rules.Height);
             var evaluation = new Evaluation();
             var visualizer = new BoardVisualizer(evaluation);
 

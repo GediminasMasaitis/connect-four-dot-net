@@ -41,26 +41,35 @@ namespace ConnectGame.Search
             (scores[currentIndex], scores[bestScoreIndex]) = (scores[bestScoreIndex], scores[currentIndex]);
         }
 
-        private int GetMoveScore(Board board, int move, SearchState state, int pvMove)
+        private int GetMoveScore(int ply, int move, SearchState state, int pvMove)
         {
             if (move == pvMove)
             {
                 return 200_000_000;
             }
 
+            //if (state.Killers[ply][0] == move)
+            //{
+            //    return 190_000_000;
+            //}
+            //if (state.Killers[ply][1] == move)
+            //{
+            //    return 180_000_000;
+            //}
+
             //return state.History[board.Player][move];
             return 0;
         }
 
 
-        public int[] GetMoveScores(Board board, SearchState state, int[] moves, int pvMove)
+        public int[] GetMoveScores(int ply, SearchState state, int[] moves, int pvMove)
         {
             var scores = new int[moves.Length];
 
             for (int moveIndex = 0; moveIndex < moves.Length; moveIndex++)
             {
                 var move = moves[moveIndex];
-                scores[moveIndex] = GetMoveScore(board, move, state, pvMove);
+                scores[moveIndex] = GetMoveScore(ply, move, state, pvMove);
             }
 
             return scores;

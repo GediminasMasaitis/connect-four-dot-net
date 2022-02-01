@@ -194,7 +194,7 @@ namespace ConnectGame.Runner
 
         private Board GetStartingBoard()
         {
-            var board = new Board(7, 6);
+            var board = new Board(Rules.Width, Rules.Height);
             lock (_rng)
             {
                 for (int i = 0; i < 4; i++)

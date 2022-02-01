@@ -15,8 +15,8 @@ namespace ConnectGame
 
         public Uc4iRunner()
         {
-            //var evaluation = new Evaluation();
-            var evaluation = new EvaluationNew();
+            var evaluation = new Evaluation();
+            //var evaluation = new EvaluationNew();
             _solver = new Solver(evaluation);
             //_solver = new RandomSolver();
             _parser = new BoardParser();
@@ -29,100 +29,115 @@ namespace ConnectGame
             while (true)
             {
                 var line = Console.ReadLine();
-                if (line == null)
+                var ok = HandleLine(ref board, line);
+                if (!ok)
                 {
-                    return;
+                    break;
                 }
-
-                if (line == "uc4i")
-                {
-                    Console.WriteLine("id name ConnectGame");
-                    Console.WriteLine($"id version {Version}");
-                    Console.WriteLine("id author Gediminas Masaitis");
-                    Console.WriteLine("uc4iok");
-                    continue;
-                }
-
-                if (line == "uc4inewgame")
-                {
-                    board = null;
-                    _solver.ResetState();
-                    continue;
-                }
-
-                if (line.StartsWith("position"))
-                {
-                    board = _parser.Parse(line);
-                    continue;
-                }
-
-                if (line.StartsWith("m "))
-                {
-                    var words = line.Split(' ');
-                    if (words.Length != 2)
-                    {
-                        Console.WriteLine("Incorrect makemove format");
-                        continue;
-                    }
-
-
-                    var moveStr = words[1];
-                    var isValidMove = int.TryParse(moveStr, out var move) && move >= 0 && move < board.Width;
-                    if (!isValidMove)
-                    {
-                        Console.WriteLine($"Invalid move {moveStr}");
-                        continue;
-                    }
-
-                    board.MakeMove(move);
-                    continue;
-                }
-
-                if (line == "d")
-                {
-                    board = new Board(7, 6);
-                    board.MakeMove(0);
-                    board.MakeMove(2);
-                    board.MakeMove(0);
-                    board.MakeMove(4);
-                    board.MakeMove(0);
-                    board.MakeMove(6);
-                    board.MakeMove(0);
-                    continue;
-                }
-
-                if (line == "u")
-                {
-                    board.UnmakeMove();
-                    continue;
-                }
-
-                if (line == "isready")
-                {
-                    Console.WriteLine("readyok");
-                    continue;
-                }
-
-                if (line.StartsWith("go"))
-                {
-                    HandleGo(board, line);
-                    continue;
-                }
-
-                if (line == "b")
-                {
-                    var boardStr = _visualizer.Visualize(board);
-                    Console.WriteLine(boardStr);
-                    continue;
-                }
-
-                if (line == "exit")
-                {
-                    return;
-                }
-
-                Console.WriteLine("Unknown command");
             }
+        }
+
+        private bool HandleLine(ref Board board, string line)
+        {
+            if (line == null)
+            {
+                return false;
+            }
+
+            if (line == "uc4i")
+            {
+                Console.WriteLine("id name ConnectGame");
+                Console.WriteLine($"id version {Version}");
+                Console.WriteLine("id author Gediminas Masaitis");
+                Console.WriteLine("uc4iok");
+                return true;
+            }
+
+            if (line == "uc4inewgame")
+            {
+                board = null;
+                _solver.ResetState();
+                return true;
+            }
+
+            if (line.StartsWith("position"))
+            {
+                board = _parser.Parse(line);
+                return true;
+            }
+
+            if (line.StartsWith("m ") || line.StartsWith("move "))
+            {
+                var words = line.Split(' ');
+                if (words.Length != 2)
+                {
+                    Console.WriteLine("Incorrect makemove format");
+                    return true;
+                }
+
+
+                var moveStr = words[1];
+                var isValidMove = int.TryParse(moveStr, out var move) && move >= 0 && move < board.Width;
+                if (!isValidMove)
+                {
+                    Console.WriteLine($"Invalid move {moveStr}");
+                    return true;
+                }
+
+                board.MakeMove(move);
+                return true;
+            }
+
+            if (line == "d")
+            {
+                board = new Board(7, 6);
+                board.MakeMove(0);
+                board.MakeMove(2);
+                board.MakeMove(0);
+                board.MakeMove(4);
+                board.MakeMove(0);
+                board.MakeMove(6);
+                board.MakeMove(0);
+                return true;
+            }
+
+            if (line == "u" || line == "undo")
+            {
+                board.UnmakeMove();
+                return true;
+            }
+
+            if (line == "isready")
+            {
+                Console.WriteLine("readyok");
+                return true;
+            }
+
+            if (line.StartsWith("go"))
+            {
+                HandleGo(board, line);
+                return true;
+            }
+
+            if (line == "b")
+            {
+                var boardStr = _visualizer.Visualize(board);
+                Console.WriteLine(boardStr);
+                return true;
+            }
+
+            if (line == "gi")
+            {
+                return HandleLine(ref board, "go infinite");
+            }
+
+            if (line == "exit")
+            {
+                return false;
+            }
+
+            Console.WriteLine("Unknown command");
+            return true;
         }
 
         private void HandleGo(Board board, string line)

@@ -41,7 +41,7 @@ namespace ConnectGame.Search
             (scores[currentIndex], scores[bestScoreIndex]) = (scores[bestScoreIndex], scores[currentIndex]);
         }
 
-        private int GetMoveScore(int ply, int move, SearchState state, int pvMove)
+        private int GetMoveScore(Board board, int ply, int move, SearchState state, int pvMove)
         {
             if (move == pvMove)
             {
@@ -62,14 +62,14 @@ namespace ConnectGame.Search
         }
 
 
-        public int[] GetMoveScores(int ply, SearchState state, int[] moves, int pvMove)
+        public int[] GetMoveScores(Board board, int ply, SearchState state, int[] moves, int pvMove)
         {
             var scores = new int[moves.Length];
 
             for (int moveIndex = 0; moveIndex < moves.Length; moveIndex++)
             {
                 var move = moves[moveIndex];
-                scores[moveIndex] = GetMoveScore(ply, move, state, pvMove);
+                scores[moveIndex] = GetMoveScore(board, ply, move, state, pvMove);
             }
 
             return scores;

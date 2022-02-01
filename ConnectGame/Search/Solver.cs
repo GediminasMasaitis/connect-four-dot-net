@@ -229,7 +229,7 @@ namespace ConnectGame.Search
                 moves[i] = move;
             }
 
-            var scores = _order.GetMoveScores(ply, _state, moves, pvMove);
+            var scores = _order.GetMoveScores(board, ply, _state, moves, pvMove);
             for (var moveIndex = 0; moveIndex < moves.Length; moveIndex++)
             {
                 _order.OrderNextMove(moveIndex, moves, scores);
@@ -264,7 +264,7 @@ namespace ConnectGame.Search
                     bestScore = score;
                     if (score > alpha)
                     {
-                        _state.History[board.Player][bestMove] += depth * depth;
+                        //_state.History[board.Player][bestMove] += depth * depth;
 
                         raisedAlpha = true;
                         alpha = score;

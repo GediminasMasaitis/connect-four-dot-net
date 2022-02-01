@@ -15,8 +15,8 @@ namespace ConnectGame
 
         public Uc4iRunner()
         {
-            var evaluation = new Evaluation();
-            //var evaluation = new EvaluationNew();
+            //var evaluation = new Evaluation();
+            var evaluation = new EvaluationNew();
             _solver = new Solver(evaluation);
             //_solver = new RandomSolver();
             _parser = new BoardParser();

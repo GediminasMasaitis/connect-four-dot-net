@@ -17,6 +17,7 @@ namespace ConnectGame.Search
         private readonly MoveOrder _order;
         private readonly SearchStopper _stopper;
         private readonly SearchStatistics _stats;
+        //private readonly CellWinDetector _cellWinDetector;
 
         private const int Inf = 2_000_000;
         private const int Win = 1_000_000;
@@ -30,6 +31,7 @@ namespace ConnectGame.Search
             _order = new MoveOrder();
             _stopper = new SearchStopper();
             _stats = new SearchStatistics();
+            //_cellWinDetector = new CellWinDetector();
         }
 
         private int Eval(Board board, out int winner)
@@ -173,24 +175,24 @@ namespace ConnectGame.Search
             }
 
             // MATE DISTANCE PRUNE
-            //var currentMateScore = Win - ply;
-            //if (ply != 0)
-            //{
-            //    if (alpha < -currentMateScore)
-            //    {
-            //        alpha = -currentMateScore;
-            //    }
+            var currentMateScore = Win - ply;
+            if (ply != 0)
+            {
+                if (alpha < -currentMateScore)
+                {
+                    alpha = -currentMateScore;
+                }
 
-            //    if (beta > currentMateScore - 1)
-            //    {
-            //        beta = currentMateScore - 1;
-            //    }
+                if (beta > currentMateScore - 1)
+                {
+                    beta = currentMateScore - 1;
+                }
 
-            //    if (alpha >= beta)
-            //    {
-            //        return alpha;
-            //    }
-            //}
+                if (alpha >= beta)
+                {
+                    return alpha;
+                }
+            }
 
             var eval = Eval(board, out var winner);
             _stats.NodesSearched++;
@@ -204,41 +206,42 @@ namespace ConnectGame.Search
 
                 if (winner == board.Player)
                 {
-                    return Win - ply;
+                    return currentMateScore;
                 }
 
-                return ply - Win;
+                return -currentMateScore;
             }
 
-            var maybeColumns = new int[] { 3, 2, 4, 1, 5, 0, 6 };
-            var columns = maybeColumns.Where(board.IsValidColumn).ToArray();
-            var moves = new int[columns.Length];
-            for (var i = 0; i < columns.Length; i++)
-            {
-                var column = columns[i];
-                var row = board.Fills[column];
-                var move = column + row * board.Width;
-                moves[i] = move;
-            }
+            //var maybeColumns = new int[] { 3, 2, 4, 1, 5, 0, 6 };
+            //var columns = maybeColumns.Where(board.IsValidColumn).ToArray();
+            //var moves = new int[columns.Length];
+            //for (var i = 0; i < columns.Length; i++)
+            //{
+            //    var column = columns[i];
+            //    var row = board.Fills[column];
+            //    var move = column + row * board.Width;
+            //    moves[i] = move;
+            //}
 
-            if (ply != 0)
-            {
-                board.MakeMove(-1);
-                foreach (var move in moves)
-                {
-                    board.MakeMove(move);
-                    var enemyEval = Eval(board, out var enemyWinner);
-                    if (enemyWinner != -1)
-                    {
-                        depth++;
-                        board.UnmakeMove();
-                        moves = new int[] { move };
-                        break;
-                    }
-                    board.UnmakeMove();
-                }
-                board.UnmakeMove();
-            }
+            //if (ply != 0)
+            //{
+            //    board.MakeMove(-1);
+            //    foreach (var move in moves)
+            //    {
+            //        board.MakeMove(move);
+            //        //var enemyEval = Eval(board, out var enemyWinner);
+            //        var enemyWinner = _cellWinDetector.GetCellWinner(board, move);
+            //        if (enemyWinner != -1)
+            //        {
+            //            depth++;
+            //            board.UnmakeMove();
+            //            moves = new int[] { move };
+            //            break;
+            //        }
+            //        board.UnmakeMove();
+            //    }
+            //    board.UnmakeMove();
+            //}
 
             if (depth == 0)
             {
@@ -284,6 +287,17 @@ namespace ConnectGame.Search
             var raisedAlpha = false;
             var betaCutoff = false;
             //var columns = new int[] { 3, 2, 4, 1, 5, 0, 6 };
+
+            var maybeColumns = new int[] { 3, 2, 4, 1, 5, 0, 6 };
+            var columns = maybeColumns.Where(board.IsValidColumn).ToArray();
+            var moves = new int[columns.Length];
+            for (var i = 0; i < columns.Length; i++)
+            {
+                var column = columns[i];
+                var row = board.Fills[column];
+                var move = column + row * board.Width;
+                moves[i] = move;
+            }
 
             var scores = _order.GetMoveScores(board, ply, _state, moves, pvMove);
             for (var moveIndex = 0; moveIndex < moves.Length; moveIndex++)

@@ -2,6 +2,66 @@
 
 namespace ConnectGame.Eval
 {
+    class CellWinDetector
+    {
+        private readonly NeighborCache _neighbors;
+
+        public CellWinDetector()
+        {
+            _neighbors = new NeighborCache();
+        }
+
+        public int GetCellWinner(Board board, int cell)
+        {
+            var player = board.Cells[cell];
+            if (player == 0)
+            {
+                return -1;
+            }
+
+            var winner = -1;
+            var neighborGroups = _neighbors[cell];
+            foreach (var group in neighborGroups)
+            {
+                var groupWin = EvaluateGroup(board, player, group);
+                if (groupWin)
+                {
+                    winner = player;
+                    break;
+                }
+            }
+
+            return winner;
+        }
+
+        private bool EvaluateGroup(Board board, byte player, int[][] group)
+        {
+            var win = false;
+            var currentCount = 0;
+            foreach (var direction in group)
+            {
+                for (var i = 0; i < direction.Length; i++)
+                {
+                    var neighbor = direction[i];
+                    var targetPlayer = board.Cells[neighbor];
+                    if (targetPlayer != player)
+                    {
+                        break;
+                    }
+
+                    currentCount++;
+                }
+            }
+
+            if (currentCount > 2)
+            {
+                win = true;
+            }
+
+            return win;
+        }
+    }
+
     class Evaluation : IEvaluation
     {
         private readonly NeighborCache _neighbors;

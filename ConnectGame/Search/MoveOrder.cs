@@ -63,13 +63,14 @@ namespace ConnectGame.Search
             //if (board.History.Count > 0)
             //{
             //    var previousMove = board.History[^1];
-            //    var sameColMove = previousMove + board.Width;
-            //    if (move == sameColMove)
-            //    {
-            //        return 1;
-            //    }
 
-            //    //return state.Counters[board.Player][previousMove][move];
+            //    //var sameColMove = previousMove + board.Width;
+            //    //if (move == sameColMove)
+            //    //{
+            //    //    return 1;
+            //    //}
+
+            //    return state.Counters[board.Player][previousMove][move];
             //}
 
             return 0;

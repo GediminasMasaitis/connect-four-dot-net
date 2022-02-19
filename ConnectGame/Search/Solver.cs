@@ -249,6 +249,15 @@ namespace ConnectGame.Search
                 return eval;
             }
 
+            //if (!isPrincipalVariation)
+            //{
+            //    var margin = 24 + depth * 8;
+            //    if (eval - margin * depth >= beta)
+            //    {
+            //        return beta;
+            //    }
+            //}
+            
             var entryExists = _state.Table.TryGet(board.Key, out var entry);
             var pvMove = entryExists ? entry.Move : -1;
             if (entryExists)
@@ -272,6 +281,23 @@ namespace ConnectGame.Search
                             }
                             break;
                     }
+                }
+            }
+
+            // STATIC EVALUATION PRUNING
+            if
+            (
+                ply > 0
+                && depth < 7
+                && !isPrincipalVariation
+            )
+            {
+                const int marginPerDepth = 20;
+                var margin = marginPerDepth * depth;
+
+                if (eval - margin >= beta)
+                {
+                    return eval - margin;
                 }
             }
 

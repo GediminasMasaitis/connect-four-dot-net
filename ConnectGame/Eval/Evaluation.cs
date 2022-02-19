@@ -121,6 +121,17 @@ namespace ConnectGame.Eval
             //scores[board.Player] += 10;
 
             var score = scores[1] - scores[2];
+
+            const int tempo = 10;
+            if (board.Player == 1)
+            {
+                score += tempo;
+            }
+            else
+            {
+                score -= tempo;
+            }
+
             return score;
         }
 

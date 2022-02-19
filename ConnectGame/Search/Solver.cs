@@ -153,6 +153,7 @@ namespace ConnectGame.Search
 
         private int AspirationSearch(Board board, int depth, int previousScore)
         {
+            return Search(board, depth, previousScore, -Inf, Inf, true);
             const int aspirationWindow = 30;
             var alpha = previousScore - aspirationWindow;
             var beta = previousScore + aspirationWindow;

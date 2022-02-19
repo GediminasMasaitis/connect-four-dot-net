@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Data;
+using System.IO;
 using System.Threading;
 using ConnectGame.Eval;
 using ConnectGame.Search;
@@ -89,7 +90,7 @@ namespace ConnectGame
                 return true;
             }
 
-            if (line == "d")
+            if (line == "d1")
             {
                 board = new Board(Rules.Width, Rules.Height);
                 board.MakeColumn(0);
@@ -99,6 +100,18 @@ namespace ConnectGame
                 board.MakeColumn(0);
                 board.MakeColumn(6);
                 board.MakeColumn(0);
+                return true;
+            }
+
+            if (line == "file")
+            {
+                var commands = File.ReadAllLines("commands.txt");
+                foreach (var command in commands)
+                {
+                    Console.WriteLine("    " + command);
+                    HandleLine(ref board, command);
+                }
+
                 return true;
             }
 

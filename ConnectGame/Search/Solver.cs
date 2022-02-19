@@ -253,7 +253,7 @@ namespace ConnectGame.Search
             var pvMove = entryExists ? entry.Move : -1;
             if (entryExists)
             {
-                if (entry.Depth >= depth)
+                if (ply > 0 && entry.Depth >= depth)
                 {
                     switch (entry.Flag)
                     {

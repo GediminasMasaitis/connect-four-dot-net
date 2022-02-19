@@ -283,7 +283,15 @@ namespace ConnectGame.Runner
                 int? column = null;
                 await timeControl.TimeAsync(board.Player, async () =>
                 {
-                    column = await engine.SendGo(timeControl);
+                    var goTask = engine.SendGo(timeControl);
+                    var delayTask = Task.Delay(10000);
+                    var completedTask = await Task.WhenAny(goTask, delayTask);
+                    if (completedTask != goTask)
+                    {
+                        _logger.LogError("Engine failed to respond");
+                        await File.WriteAllLinesAsync("C:/Temp/c4.txt", engine.History);
+                    }
+                    column = await goTask;
                 });
                 
                 if (!column.HasValue)

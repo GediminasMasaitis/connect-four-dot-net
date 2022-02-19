@@ -103,9 +103,10 @@ namespace ConnectGame.Search
 
         private void IterativeDeepen(Board board, int maxDepth)
         {
+            var score = Search(board, 1, 0, -Inf, Inf, true);
             for (int depth = 2; depth <= maxDepth; depth++)
             {
-                var score = Search(board, depth, 0, -Inf, Inf, true);
+                score = AspirationSearch(board, depth, score);
 
                 if (_stopper.IsStopped())
                 {
@@ -146,6 +147,21 @@ namespace ConnectGame.Search
                     break;
                 }
             }
+        }
+
+        private int AspirationSearch(Board board, int depth, int previousScore)
+        {
+            const int aspirationWindow = 30;
+            int alpha = previousScore - aspirationWindow;
+            int beta = previousScore + aspirationWindow;
+
+            var score = Search(board, depth, 0, alpha, beta, true);
+            if (score <= alpha || score >= beta)
+            {
+                score = Search(board, depth, previousScore, -Inf, Inf, true);
+            }
+
+            return score;
         }
 
         private int Search(Board board, int depth, int ply, int alpha, int beta, bool isPrincipalVariation)

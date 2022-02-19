@@ -58,6 +58,13 @@ namespace ConnectGame.Search
             //}
 
             //return state.History[board.Player][move];
+
+            //if (board.History.Count > 0)
+            //{
+            //    var previousMove = board.History[^1];
+            //    return state.Counters[board.Player][previousMove][move];
+            //}
+            
             return 0;
         }
 

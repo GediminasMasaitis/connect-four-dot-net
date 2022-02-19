@@ -152,8 +152,8 @@ namespace ConnectGame.Search
         private int AspirationSearch(Board board, int depth, int previousScore)
         {
             const int aspirationWindow = 30;
-            int alpha = previousScore - aspirationWindow;
-            int beta = previousScore + aspirationWindow;
+            var alpha = previousScore - aspirationWindow;
+            var beta = previousScore + aspirationWindow;
 
             var score = Search(board, depth, 0, alpha, beta, true);
             if (score <= alpha || score >= beta)
@@ -172,6 +172,26 @@ namespace ConnectGame.Search
                 return alpha;
             }
 
+            // MATE DISTANCE PRUNE
+            //var currentMateScore = Win - ply;
+            //if (ply != 0)
+            //{
+            //    if (alpha < -currentMateScore)
+            //    {
+            //        alpha = -currentMateScore;
+            //    }
+
+            //    if (beta > currentMateScore - 1)
+            //    {
+            //        beta = currentMateScore - 1;
+            //    }
+
+            //    if (alpha >= beta)
+            //    {
+            //        return alpha;
+            //    }
+            //}
+
             var eval = Eval(board, out var winner);
             _stats.NodesSearched++;
 
@@ -188,6 +208,36 @@ namespace ConnectGame.Search
                 }
 
                 return ply - Win;
+            }
+
+            var maybeColumns = new int[] { 3, 2, 4, 1, 5, 0, 6 };
+            var columns = maybeColumns.Where(board.IsValidColumn).ToArray();
+            var moves = new int[columns.Length];
+            for (var i = 0; i < columns.Length; i++)
+            {
+                var column = columns[i];
+                var row = board.Fills[column];
+                var move = column + row * board.Width;
+                moves[i] = move;
+            }
+
+            if (ply != 0)
+            {
+                board.MakeMove(-1);
+                foreach (var move in moves)
+                {
+                    board.MakeMove(move);
+                    var enemyEval = Eval(board, out var enemyWinner);
+                    if (enemyWinner != -1)
+                    {
+                        depth++;
+                        board.UnmakeMove();
+                        moves = new int[] { move };
+                        break;
+                    }
+                    board.UnmakeMove();
+                }
+                board.UnmakeMove();
             }
 
             if (depth == 0)
@@ -234,16 +284,6 @@ namespace ConnectGame.Search
             var raisedAlpha = false;
             var betaCutoff = false;
             //var columns = new int[] { 3, 2, 4, 1, 5, 0, 6 };
-            var maybeColumns = new int[] { 3, 2, 4, 1, 5, 0, 6 };
-            var columns = maybeColumns.Where(board.IsValidColumn).ToArray();
-            var moves = new int[columns.Length];
-            for (var i = 0; i < columns.Length; i++)
-            {
-                var column = columns[i];
-                var row = board.Fills[column];
-                var move = column + row * board.Width;
-                moves[i] = move;
-            }
 
             var scores = _order.GetMoveScores(board, ply, _state, moves, pvMove);
             for (var moveIndex = 0; moveIndex < moves.Length; moveIndex++)
@@ -281,11 +321,17 @@ namespace ConnectGame.Search
                     if (score > alpha)
                     {
                         //_state.History[board.Player][bestMove] += depth * depth;
+                        //if (board.History.Count > 0)
+                        //{
+                        //    var previousMove = board.History[^1];
+                        //    _state.Counters[board.Player][previousMove][bestMove] += depth * depth;
+                        //}
 
                         raisedAlpha = true;
                         alpha = score;
                         if (score >= beta)
                         {
+
                             //_state.Killers[ply][1] = _state.Killers[ply][0];
                             //_state.Killers[ply][0] = bestMove;
                             betaCutoff = true;
